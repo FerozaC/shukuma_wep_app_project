@@ -1,41 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import Image from "next/image"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { useAuth } from "@/context/auth-context"
-import {
-  type ExerciseCard,
-  generateDeckWithBreaks,
-  shuffleDeck,
-  type BreakSession,
-  type DeckItem,
-} from "@/lib/deck-engine"
-import { ExerciseCardComponent } from "@/components/exercise-card"
-import { BreakScreen } from "@/components/break-screen"
 import { Button } from "@/components/ui/button"
-
-const SAMPLE_EXERCISES: ExerciseCard[] = [
-  { id: "1", name: "Push Ups", difficulty: "Beginner", image: "💪", repsOrDuration: "10 reps", muscleGroup: "Chest, Shoulders" },
-  { id: "2", name: "Squats", difficulty: "Intermediate", image: "🦵", repsOrDuration: "15 reps", muscleGroup: "Legs" },
-  { id: "3", name: "Jumping Jacks", difficulty: "Beginner", image: "🤸", repsOrDuration: "20 reps", muscleGroup: "Full Body" },
-  { id: "4", name: "Plank", difficulty: "Intermediate", image: "📏", repsOrDuration: "30 seconds", muscleGroup: "Core" },
-  { id: "5", name: "Burpees", difficulty: "Advanced", image: "🏃", repsOrDuration: "10 reps", muscleGroup: "Full Body" },
-  { id: "6", name: "Mountain Climbers", difficulty: "Advanced", image: "⛰️", repsOrDuration: "30 seconds", muscleGroup: "Core, Cardio" },
-]
+import type { ExerciseCategory } from "@/lib/exercise-assets"
+import { filterAssets, shuffle } from "@/lib/exercise-assets"
+import { api } from "@/lib/api"
 
 export default function WorkoutAdvancedPage() {
   const { isAuthenticated, loading } = useAuthRedirect()
-  const { token } = useAuth()
+  const { token, refresh } = useAuth()
   const router = useRouter()
 
   const [showDisclaimer, setShowDisclaimer] = useState(true)
-  const [deck, setDeck] = useState<DeckItem[]>([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardsCompleted, setCardsCompleted] = useState(0)
   const [startTime, setStartTime] = useState<Date | null>(null)
-  const [sessionActive, setSessionActive] = useState(false)
+  const [category, setCategory] = useState<ExerciseCategory | undefined>(undefined)
+
+  const deck = useMemo(() => shuffle(filterAssets(category)), [category])
 
   if (loading || !isAuthenticated) {
     return null
@@ -43,11 +30,21 @@ export default function WorkoutAdvancedPage() {
 
   const handleStartWorkout = () => {
     setShowDisclaimer(false)
-    const shuffled = shuffleDeck(SAMPLE_EXERCISES)
-    const deckWithBreaks = generateDeckWithBreaks(shuffled)
-    setDeck(deckWithBreaks)
-    setSessionActive(true)
     setStartTime(new Date())
+    setCurrentCardIndex(0)
+    setCardsCompleted(0)
+    setIsFlipped(false)
+  }
+
+  const finishAndSave = async () => {
+    const endTime = new Date()
+    const totalTime = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0
+
+    if (token) {
+      await api.sessions.save(token, { cardsCompleted: cardsCompleted + 1, totalTime }).catch(() => {})
+      await refresh().catch(() => {})
+    }
+    router.push(`/workout-complete?cards=${cardsCompleted + 1}&time=${totalTime}`)
   }
 
   if (showDisclaimer) {
@@ -65,6 +62,37 @@ export default function WorkoutAdvancedPage() {
               </p>
             </div>
 
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+              <Button
+                variant={category === undefined ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory(undefined)}
+              >
+                All
+              </Button>
+              <Button
+                variant={category === "cardio" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("cardio")}
+              >
+                Cardio
+              </Button>
+              <Button
+                variant={category === "lower-body" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("lower-body")}
+              >
+                Lower Body
+              </Button>
+              <Button
+                variant={category === "upper-body" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("upper-body")}
+              >
+                Upper Body
+              </Button>
+            </div>
+
             <Button onClick={handleStartWorkout} className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 rounded-full text-lg">
               Proceed to Workout
             </Button>
@@ -74,68 +102,97 @@ export default function WorkoutAdvancedPage() {
     )
   }
 
-  if (deck.length === 0) {
-    return null
-  }
-
-  const currentItem = deck[currentIndex]
-  const isBreak = currentItem.type === "break"
-  const currentCard = currentItem.data as ExerciseCard | BreakSession
-  const progressPercent = ((currentIndex + 1) / deck.length) * 100
-
-  const handleNextCard = () => {
-    if (currentIndex < deck.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-      setIsFlipped(false)
-      if (currentItem.type === "exercise") {
-        setCardsCompleted(cardsCompleted + 1)
-      }
-    } else {
-      handleFinishWorkout()
-    }
-  }
-
-  const handleFinishWorkout = async () => {
-    const endTime = new Date()
-    const totalTime = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0
-
-    if (token) {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/save`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ cardsCompleted, totalTime }),
-      })
-    }
-
-    router.push(`/workout-complete?cards=${cardsCompleted}&time=${totalTime}`)
-  }
-
-  if (isBreak) {
-    return <BreakScreen breakSession={currentCard as BreakSession} onBreakComplete={handleNextCard} />
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col items-center justify-center p-4">
-      <div className="max-w-4xl w-full mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-sm text-gray-600">Exercise {cardsCompleted + 1} / {SAMPLE_EXERCISES.length}</div>
-          <button onClick={() => router.push("/dashboard")} className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-            Exit
-          </button>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-amber-400 transition-all duration-300" style={{ width: `${progressPercent}%` }} />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <div className="max-w-xl mx-auto flex flex-col items-center">
+          <div className="flex items-center justify-between mb-6 w-full">
+            <div className="text-sm text-gray-600">
+              Card {currentCardIndex + 1} / {deck.length}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsFlipped(false)}>
+                Hide
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setIsFlipped(true)}>
+                Reveal
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setCurrentCardIndex(0)
+                  setIsFlipped(false)
+                  setCardsCompleted(0)
+                }}
+              >
+                Reshuffle
+              </Button>
+            </div>
+          </div>
 
-      <div className="max-w-xs w-full mb-12">
-        <ExerciseCardComponent card={currentCard as ExerciseCard} isFlipped={isFlipped} onFlip={() => setIsFlipped(!isFlipped)} />
-      </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-8">
+            <div
+              className="h-full bg-amber-400 transition-all duration-300"
+              style={{ width: `${deck.length ? (((currentCardIndex + 1) / deck.length) * 100) : 0}%` }}
+            />
+          </div>
 
-      <div className="max-w-md w-full">
-        <Button onClick={handleNextCard} className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 rounded-full text-lg">
-          {currentIndex === deck.length - 1 ? "Finish Workout" : "Next"}
-        </Button>
+          <div
+            onClick={() => setIsFlipped(!isFlipped)}
+            className="relative w-full max-w-sm aspect-[7/10] bg-white rounded-2xl shadow-2xl p-4 flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-105 border-4 border-sky-200"
+          >
+            {!isFlipped ? (
+              <div className="text-center w-full flex flex-col items-center">
+                <div className="mb-2">
+                  <Image
+                    src="/assets/illustrations/deck_back.png"
+                    alt="Card back"
+                    width={250}
+                    height={357}
+                    className="rounded-xl bg-white border border-gray-200"
+                    priority
+                  />
+                </div>
+                <p className="text-gray-600 text-sm">Tap to reveal</p>
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                {deck[currentCardIndex] && (
+                  <Image
+                    src={deck[currentCardIndex].imagePath}
+                    alt={deck[currentCardIndex].name}
+                    width={250}
+                    height={357}
+                    className="object-contain rounded-xl bg-white border border-gray-200"
+                    priority
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-10 w-full max-w-sm">
+            <Button
+              onClick={() => {
+                if (currentCardIndex < deck.length - 1) {
+                  setCurrentCardIndex(currentCardIndex + 1)
+                  setIsFlipped(false)
+                  setCardsCompleted(cardsCompleted + 1)
+                } else {
+                  finishAndSave()
+                }
+              }}
+              className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 rounded-full text-lg"
+            >
+              {currentCardIndex === deck.length - 1 ? "Finish" : "Next Card"}
+            </Button>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">Cards completed: {cardsCompleted}</p>
+          </div>
+        </div>
       </div>
     </div>
   )

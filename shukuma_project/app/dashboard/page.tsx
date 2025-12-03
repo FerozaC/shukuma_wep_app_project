@@ -9,6 +9,7 @@ import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/stat-card"
 import { ChartBar } from "@/components/chart-bar"
+import { Navbar } from "@/components/navbar"
 
 export default function DashboardPage() {
   const { isAuthenticated, loading } = useAuthRedirect()
@@ -51,28 +52,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image src="/assets/logo/shukuma-icon.jpg" alt="Shukuma" width={40} height={40} className="rounded-lg" />
-            <h1 className="text-2xl font-bold text-gray-900">Shukuma</h1>
-          </div>
-          <nav className="hidden md:flex items-center gap-8">
-            <Link href="/dashboard" className="text-gray-900 font-medium">
-              Dashboard
-            </Link>
-            <Link href="/history" className="text-gray-600 hover:text-gray-900">
-              History
-            </Link>
-            <Link href="/profile" className="text-gray-600 hover:text-gray-900">
-              Profile
-            </Link>
-          </nav>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-400 flex items-center justify-center text-white cursor-pointer font-semibold">
-            {user?.name.charAt(0).toUpperCase()}
-          </div>
-        </div>
-      </header>
+      <Navbar active="dashboard" />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
@@ -82,7 +62,7 @@ export default function DashboardPage() {
             <div className="flex-shrink-0">
               <div className="relative w-32 h-32">
                 <Image
-                  src="/assets/illustrations/hero-welcome.jpg"
+                  src="/assets/illustrations/deck_back.png"
                   alt="Ready for your next challenge"
                   fill
                   className="rounded-2xl object-cover"

@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -8,6 +7,7 @@ import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Navbar } from "@/components/navbar"
 
 export default function ProfilePage() {
   const { isAuthenticated, loading } = useAuthRedirect()
@@ -34,33 +34,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="flex items-center hover:opacity-80">
-              <Image
-                src="/assets/logo/shukuma-logo-light.png"
-                alt="Shukuma Fitness App"
-                width={160}
-                height={40}
-                priority
-                className="drop-shadow-lg"
-              />
-            </Link>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              Dashboard
-            </Link>
-            <Link href="/history" className="text-gray-600 hover:text-gray-900">
-              History
-            </Link>
-            <Link href="/profile" className="text-gray-900 font-medium">
-              Profile
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar active="profile" />
 
       <main className="max-w-2xl mx-auto px-6 py-12">
         <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-3xl p-12 mb-8 text-center">

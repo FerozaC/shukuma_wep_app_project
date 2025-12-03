@@ -28,6 +28,7 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      console.log("Submitting register", formData)
       await register(formData)
       router.push("/dashboard")
     } catch (err: any) {

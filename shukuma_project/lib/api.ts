@@ -6,6 +6,7 @@ const API_URL = base
 export const api = {
   auth: {
     register: async (data: { name: string; email: string; password: string }) => {
+      console.debug("API base:", API_URL)
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -14,6 +15,7 @@ export const api = {
       return res.json()
     },
     login: async (data: { email: string; password: string }) => {
+      console.debug("API base:", API_URL)
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

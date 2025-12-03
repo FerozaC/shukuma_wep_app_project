@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
+import { Navbar } from "@/components/navbar"
 
 interface WorkoutEntry {
   id: string
@@ -49,29 +50,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80">
-              <div className="w-10 h-10 bg-amber-400 rounded-lg flex items-center justify-center text-white font-bold">
-                ⚡
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Shukuma</h1>
-            </Link>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              Dashboard
-            </Link>
-            <Link href="/history" className="text-gray-900 font-medium">
-              History
-            </Link>
-            <Link href="/profile" className="text-gray-600 hover:text-gray-900">
-              Profile
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar active="history" />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <h2 className="text-4xl font-bold text-gray-900 mb-12">Workout History</h2>
