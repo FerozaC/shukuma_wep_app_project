@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+const base = process.env.NEXT_PUBLIC_API_URL
+const API_URL = base
+  ? (base.endsWith("/api") ? base : `${base}/api`)
+  : "http://localhost:5000/api"
 
 export const api = {
   auth: {

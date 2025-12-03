@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
@@ -8,10 +9,12 @@ import type { ExerciseCategory } from "@/lib/exercise-assets"
 import { filterAssets, shuffle } from "@/lib/exercise-assets"
 
 export default function WorkoutGuestPage() {
+  const router = useRouter()
   const [started, setStarted] = useState(false)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardsCompleted, setCardsCompleted] = useState(0)
+  const [startTime, setStartTime] = useState<Date | null>(null)
   const [category, setCategory] = useState<ExerciseCategory | undefined>(undefined)
 
   const deck = useMemo(() => shuffle(filterAssets(category)), [category])
@@ -76,6 +79,7 @@ export default function WorkoutGuestPage() {
                 setCurrentCardIndex(0)
                 setIsFlipped(false)
                 setCardsCompleted(0)
+                setStartTime(new Date())
               }}
               className="bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 px-8 rounded-full text-lg"
             >
@@ -102,6 +106,7 @@ export default function WorkoutGuestPage() {
                     setCurrentCardIndex(0)
                     setIsFlipped(false)
                     setCardsCompleted(0)
+                    // keep startTime so total duration persists across reshuffles
                   }}
                 >
                   Reshuffle
@@ -157,6 +162,10 @@ export default function WorkoutGuestPage() {
                     setCurrentCardIndex(currentCardIndex + 1)
                     setIsFlipped(false)
                     setCardsCompleted(cardsCompleted + 1)
+                  } else {
+                    const endTime = new Date()
+                    const totalTime = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0
+                    router.push(`/workout-complete?cards=${cardsCompleted + 1}&time=${totalTime}`)
                   }
                 }}
                 className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 rounded-full text-lg"
