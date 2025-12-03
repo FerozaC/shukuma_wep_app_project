@@ -1,33 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-
-interface WorkoutCard {
-  id: string
-  name: string
-  difficulty: "Easy" | "Medium" | "Hard"
-  image: string
-}
-
-const SAMPLE_CARDS: WorkoutCard[] = [
-  { id: "1", name: "Push Ups", difficulty: "Easy", image: "💪" },
-  { id: "2", name: "Squats", difficulty: "Medium", image: "🦵" },
-  { id: "3", name: "Jumping Jacks", difficulty: "Medium", image: "🤸" },
-  { id: "4", name: "Plank", difficulty: "Hard", image: "📏" },
-]
+import Image from "next/image"
+import type { ExerciseCategory } from "@/lib/exercise-assets"
+import { filterAssets, shuffle } from "@/lib/exercise-assets"
 
 export default function WorkoutGuestPage() {
   const [started, setStarted] = useState(false)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardsCompleted, setCardsCompleted] = useState(0)
+  const [category, setCategory] = useState<ExerciseCategory | undefined>(undefined)
 
-  const difficultyColors = {
-    Easy: "bg-green-100 text-green-800",
-    Medium: "bg-amber-100 text-amber-800",
-    Hard: "bg-red-100 text-red-800",
+  const deck = useMemo(() => shuffle(filterAssets(category)), [category])
+
+  const difficultyColors: Record<string, string> = {
+    Beginner: "bg-green-100 text-green-800",
+    Intermediate: "bg-amber-100 text-amber-800",
+    Advanced: "bg-red-100 text-red-800",
   }
 
   return (
@@ -47,55 +39,121 @@ export default function WorkoutGuestPage() {
               after to keep your stats.
             </p>
 
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+              <Button
+                variant={category === undefined ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory(undefined)}
+              >
+                All
+              </Button>
+              <Button
+                variant={category === "cardio" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("cardio")}
+              >
+                Cardio
+              </Button>
+              <Button
+                variant={category === "lower-body" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("lower-body")}
+              >
+                Lower Body
+              </Button>
+              <Button
+                variant={category === "upper-body" ? "default" : "outline"}
+                className="px-4 py-2 rounded-full"
+                onClick={() => setCategory("upper-body")}
+              >
+                Upper Body
+              </Button>
+            </div>
+
             <Button
-              onClick={() => setStarted(true)}
+              onClick={() => {
+                setStarted(true)
+                setCurrentCardIndex(0)
+                setIsFlipped(false)
+                setCardsCompleted(0)
+              }}
               className="bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 px-8 rounded-full text-lg"
             >
-              Start Sample Workout
+              Start Workout
             </Button>
           </div>
         ) : (
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto flex flex-col items-center">
             <div className="flex items-center justify-between mb-6">
               <div className="text-sm text-gray-600">
-                Card {currentCardIndex + 1} / {SAMPLE_CARDS.length}
+                Card {currentCardIndex + 1} / {deck.length}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsFlipped(false)}>
+                  Hide
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setIsFlipped(true)}>
+                  Reveal
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCurrentCardIndex(0)
+                    setIsFlipped(false)
+                    setCardsCompleted(0)
+                  }}
+                >
+                  Reshuffle
+                </Button>
               </div>
             </div>
 
             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-8">
               <div
                 className="h-full bg-amber-400 transition-all duration-300"
-                style={{ width: `${((currentCardIndex + 1) / SAMPLE_CARDS.length) * 100}%` }}
+                style={{ width: `${deck.length ? (((currentCardIndex + 1) / deck.length) * 100) : 0}%` }}
               />
             </div>
 
             <div
               onClick={() => setIsFlipped(!isFlipped)}
-              className="aspect-video bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-105 border-4 border-sky-200"
+              className="relative w-full max-w-sm aspect-[7/10] bg-white rounded-2xl shadow-2xl p-4 flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-105 border-4 border-sky-200"
             >
               {!isFlipped ? (
-                <div className="text-center">
-                  <div className="text-8xl mb-4">{SAMPLE_CARDS[currentCardIndex].image}</div>
+                <div className="text-center w-full flex flex-col items-center">
+                  <div className="mb-2">
+                    <Image
+                      src="/assets/illustrations/deck_back.png"
+                      alt="Card back"
+                      width={250}
+                      height={357}
+                      className="rounded-xl bg-white border border-gray-200"
+                      priority
+                    />
+                  </div>
                   <p className="text-gray-600 text-sm">Tap to reveal</p>
                 </div>
               ) : (
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-gray-900 mb-4">{SAMPLE_CARDS[currentCardIndex].name}</p>
-                  <span
-                    className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                      difficultyColors[SAMPLE_CARDS[currentCardIndex].difficulty]
-                    }`}
-                  >
-                    {SAMPLE_CARDS[currentCardIndex].difficulty}
-                  </span>
+                <div className="w-full h-full flex items-center justify-center">
+                  {deck[currentCardIndex] && (
+                    <Image
+                      src={deck[currentCardIndex].imagePath}
+                      alt={deck[currentCardIndex].name}
+                      width={250}
+                      height={357}
+                      className="object-contain rounded-xl bg-white border border-gray-200"
+                      priority
+                    />
+                  )}
                 </div>
               )}
             </div>
 
-            <div className="mt-10">
+            <div className="mt-10 w-full max-w-sm">
               <Button
                 onClick={() => {
-                  if (currentCardIndex < SAMPLE_CARDS.length - 1) {
+                  if (currentCardIndex < deck.length - 1) {
                     setCurrentCardIndex(currentCardIndex + 1)
                     setIsFlipped(false)
                     setCardsCompleted(cardsCompleted + 1)
@@ -103,7 +161,7 @@ export default function WorkoutGuestPage() {
                 }}
                 className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-6 rounded-full text-lg"
               >
-                {currentCardIndex === SAMPLE_CARDS.length - 1 ? "Finish" : "Next Card"}
+                {currentCardIndex === deck.length - 1 ? "Finish" : "Next Card"}
               </Button>
             </div>
 
