@@ -53,7 +53,28 @@ export default function HistoryPage() {
       <Navbar active="history" />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        <h2 className="text-4xl font-bold text-gray-900 mb-12">Workout History</h2>
+        <h2 className="text-4xl font-bold text-gray-900 mb-8">Workout History</h2>
+
+        {workoutHistory.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
+              <p className="text-gray-600 text-sm">Total Workouts</p>
+              <p className="text-4xl font-bold text-amber-500 mt-3">{workoutHistory.length}</p>
+            </div>
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
+              <p className="text-gray-600 text-sm">Total Cards</p>
+              <p className="text-4xl font-bold text-sky-500 mt-3">
+                {workoutHistory.reduce((sum, w) => sum + w.cardsCompleted, 0)}
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
+              <p className="text-gray-600 text-sm">Total Time</p>
+              <p className="text-4xl font-bold text-green-500 mt-3">
+                {formatTime(workoutHistory.reduce((sum, w) => sum + w.totalTime, 0))}
+              </p>
+            </div>
+          </div>
+        )}
 
         {workoutHistory.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center">
@@ -94,26 +115,7 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {workoutHistory.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-              <p className="text-gray-600 text-sm">Total Workouts</p>
-              <p className="text-4xl font-bold text-amber-500 mt-3">{workoutHistory.length}</p>
-            </div>
-            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-              <p className="text-gray-600 text-sm">Total Cards</p>
-              <p className="text-4xl font-bold text-sky-500 mt-3">
-                {workoutHistory.reduce((sum, w) => sum + w.cardsCompleted, 0)}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-              <p className="text-gray-600 text-sm">Total Time</p>
-              <p className="text-4xl font-bold text-green-500 mt-3">
-                {formatTime(workoutHistory.reduce((sum, w) => sum + w.totalTime, 0))}
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Summary moved to top */}
       </main>
     </div>
   )

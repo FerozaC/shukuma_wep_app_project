@@ -6,7 +6,6 @@ interface AuthRequest extends Request {
   user?: { id: string }
 }
 
-// Register user
 export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body
@@ -29,7 +28,6 @@ export const register = async (req: Request, res: Response) => {
   }
 }
 
-// Login user
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
@@ -55,7 +53,6 @@ export const login = async (req: Request, res: Response) => {
   }
 }
 
-// Get current user
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user?.id)

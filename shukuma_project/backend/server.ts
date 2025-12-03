@@ -10,19 +10,15 @@ dotenv.config()
 
 const app = express()
 
-// Middleware
 app.use(cors())
 app.use(express.json())
 
-// Connect database
 connectDB()
 
-// Routes
 app.use("/api/auth", authRoutes)
 app.use("/api/workouts", workoutRoutes)
 app.use("/api/sessions", sessionRoutes)
 
-// Basic root and health check routes
 app.get("/", (_req, res) => {
   res.send("Shukuma Backend is running. Try /api/health");
 })

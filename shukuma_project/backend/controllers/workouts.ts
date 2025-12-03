@@ -5,7 +5,6 @@ interface AuthRequest extends Request {
   user?: { id: string }
 }
 
-// Get all workouts for user
 export const getWorkouts = async (req: AuthRequest, res: Response) => {
   try {
     const workouts = await Workout.find({ userId: req.user?.id })
@@ -15,7 +14,6 @@ export const getWorkouts = async (req: AuthRequest, res: Response) => {
   }
 }
 
-// Create workout
 export const createWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const { cards, duration, level, goals, name } = req.body
@@ -35,7 +33,6 @@ export const createWorkout = async (req: AuthRequest, res: Response) => {
   }
 }
 
-// Assign workout to friend
 export const assignWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const { workoutId, assignedToId } = req.body
@@ -48,10 +45,8 @@ export const assignWorkout = async (req: AuthRequest, res: Response) => {
   }
 }
 
-// Get available cards
 export const getCards = async (req: Request, res: Response) => {
   try {
-    // Return list of available card filenames
     const cards = [
       "pushups.png",
       "squats.png",

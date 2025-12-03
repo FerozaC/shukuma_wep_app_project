@@ -46,7 +46,14 @@ export default function WorkoutCompletePage() {
             </div>
           </div>
 
-          <p className="text-center text-gray-600 mb-8">Thank you for trying out Shukuma!</p>
+          <p className="text-center text-gray-700 mb-8">
+            Thank you for trying out Shukuma! If you would like to support us please
+            {" "}
+            <Link href="https://www.y-notofficial.co.za/" className="text-sky-600 hover:text-sky-700 font-medium" target="_blank" rel="noopener noreferrer">
+              Purchase the deck
+            </Link>
+            .
+          </p>
 
           <div className="space-y-3">
             <Button onClick={() => router.push("/workout")} className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-3 rounded-full">
